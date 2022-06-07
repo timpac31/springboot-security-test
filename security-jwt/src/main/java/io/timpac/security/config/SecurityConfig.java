@@ -28,6 +28,7 @@ public class SecurityConfig {
 			
 			.and()
 			.authorizeHttpRequests()
+			.antMatchers("/user/signup").permitAll()
 			.anyRequest().authenticated();
 		
 		return http.build();
@@ -35,7 +36,7 @@ public class SecurityConfig {
 	
 	@Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().antMatchers("/css/**", "/js/**");
+        return (web) -> web.ignoring().antMatchers("/css/**", "/js/**", "/h2-console/**");
     }
 	
 	@Bean
