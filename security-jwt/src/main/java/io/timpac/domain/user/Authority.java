@@ -6,15 +6,18 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+import org.springframework.security.core.GrantedAuthority;
+
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
-@Getter @Setter
+@Data
 @NoArgsConstructor @AllArgsConstructor
-public class Authority {
+public class Authority implements GrantedAuthority {
+	private static final long serialVersionUID = -3581311129370669910L;
+	
 	@Id
 	@Column(name = "AUTHORITY_NAME")
 	private String name;
@@ -35,4 +38,10 @@ public class Authority {
 		Authority other = (Authority) obj;
 		return Objects.equals(name, other.name);
 	}
+
+	@Override
+	public String getAuthority() {
+		return name;
+	}
+
 }

@@ -2,7 +2,9 @@ package io.timpac.service.user;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,9 +16,10 @@ import lombok.RequiredArgsConstructor;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
 	private final UserRepository userRepository;
 	private final AuthorityService authorityService;
+	private final PasswordEncoder passwordEncoder;
 	
 	public User signUp(UserDto userDto) {
 		userRepository.findByUsername(userDto.getUsername()).ifPresent(user -> {
@@ -25,7 +28,7 @@ public class UserService {
 
 		User user = User.builder()
 				.username(userDto.getUsername())
-				.password(userDto.getPassword())
+				.password(passwordEncoder.encode(userDto.getPassword()))
 				.enabled(true)
 				.authorities(authorityService.retriveAuthoritySet("ROLE_USER"))
 				.build();
@@ -56,6 +59,16 @@ public class UserService {
 
 	public Page<User> findAll(Integer page, Integer pageSize) {
 		return userRepository.findAll(PageRequest.of(page, pageSize));
+	}
+	
+	public void deleteAll() {
+		userRepository.deleteAll();
+	}
+
+	@Override
+	public User loadUserByUsername(String username) throws UsernameNotFoundException {
+		return userRepository.findOneWithAuthoritiesByUsername(username)
+				.orElseThrow(() -> new UsernameNotFoundException(username + "을 찾을 수 없습니다."));
 	}
 	
 }

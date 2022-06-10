@@ -1,6 +1,7 @@
 package io.timpac.domain.user;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -14,19 +15,21 @@ import javax.persistence.Table;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "USERS")
-@Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
+@Data
 @Builder
-public class User {
+public class User implements UserDetails {
+	private static final long serialVersionUID = 1L;
+
 	@Id @GeneratedValue
 	@Column(name = "USER_ID")
 	private Long id;
@@ -53,5 +56,40 @@ public class User {
 
 	public void removeAuthority(Authority authority) {
 		this.authorities.remove(authority);
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		return enabled;
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return enabled;
+	}
+
+	@Override
+	public Set<Authority> getAuthorities() {
+		return authorities;
+	}
+
+	@Override
+	public String getPassword() {
+		return password;
+	}
+
+	@Override
+	public String getUsername() {
+		return username;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	@Override
+	public boolean isAccountNonExpired() {
+		return enabled;
 	}
 }

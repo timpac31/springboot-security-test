@@ -5,11 +5,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 
+import io.timpac.jwt.JwtProperties;
+
 @SpringBootTest
 class Jwt1ApplicationTests {
 
 	@Autowired
 	private ApplicationContext context;
+	
+	@Autowired
+	private JwtProperties jwtProperties;
+	
+	@Test
+	void configurationPropertyMapping() {
+		System.out.println(jwtProperties.getSecretKey());
+		System.out.println(jwtProperties.getExpiredMilliSeconds());
+	}
 
 	@Test
 	void contextLoads() {
