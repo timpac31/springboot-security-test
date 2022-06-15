@@ -1,7 +1,6 @@
 package io.timpac.domain.user;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -92,4 +91,9 @@ public class User implements UserDetails {
 	public boolean isAccountNonExpired() {
 		return enabled;
 	}
+	
+	public boolean hasAuthority(String authorityName) {
+		return authorities.stream().anyMatch(auth -> auth.getAuthority().equals(authorityName));
+	}
+	
 }

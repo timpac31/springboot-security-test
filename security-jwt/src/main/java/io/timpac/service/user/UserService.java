@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.timpac.domain.user.Authority;
 import io.timpac.domain.user.User;
 import io.timpac.domain.user.dto.UserDto;
 import io.timpac.repository.user.UserRepository;
@@ -30,7 +31,7 @@ public class UserService implements UserDetailsService {
 				.username(userDto.getUsername())
 				.password(passwordEncoder.encode(userDto.getPassword()))
 				.enabled(true)
-				.authorities(authorityService.retriveAuthoritySet("ROLE_USER"))
+				.authorities(authorityService.retriveAuthoritySet(Authority.USER))
 				.build();
 		
 		return userRepository.save(user);
@@ -39,6 +40,11 @@ public class UserService implements UserDetailsService {
 	public User getUser(String username) {
 		return userRepository.findByUsername(username).orElse(null);
 	}	
+	
+	public User getUser(String username, String password) {
+		return userRepository.findByUsernameAndPassword(username, passwordEncoder.encode(password))
+				.orElseThrow(() -> new UsernameNotFoundException("아이디와 비밀번호가 일치하지않습니다."));
+	}
 	
 	public User findUser(Long userId) {
 		return userRepository.findById(userId)

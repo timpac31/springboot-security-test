@@ -17,6 +17,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor @AllArgsConstructor
 public class Authority implements GrantedAuthority {
 	private static final long serialVersionUID = -3581311129370669910L;
+	public static final String ADMIN = "ROLE_ADMIN";
+	public static final String USER = "ROLE_USER";
 	
 	@Id
 	@Column(name = "AUTHORITY_NAME")

@@ -8,7 +8,6 @@ import io.timpac.domain.user.Authority;
 import io.timpac.domain.user.User;
 
 public class UserTestHelper {
-	
 	public static User createUser() {
 		return User.builder()
 			.username("jyd")

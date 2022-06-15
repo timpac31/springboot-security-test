@@ -3,15 +3,13 @@ package io.timpac.jwt;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -79,11 +77,11 @@ public class JwtUtil {
 	public Authentication getAuthentication(String token) {
 		Claims body = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
 		String username = body.get("username").toString();
-		List<SimpleGrantedAuthority> authList = Arrays.stream(body.get("authority").toString().split(","))
-					.map(SimpleGrantedAuthority::new)
-					.toList();
+		Set<Authority> authList = Arrays.stream(body.get("authority").toString().split(","))
+					.map(Authority::new)
+					.collect(Collectors.toSet());
 		
-		UserDetails user = org.springframework.security.core.userdetails.User.builder()
+		User user = User.builder()
 			.username(username)
 			.authorities(authList)
 			.password("")
