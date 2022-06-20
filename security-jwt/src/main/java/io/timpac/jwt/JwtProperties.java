@@ -11,5 +11,6 @@ import lombok.Setter;
 @ConfigurationProperties(prefix = "jwt")
 public class JwtProperties {
 	private String secretKey;
-	private int expiredMilliSeconds;
+	private int tokenLifeTimeMs;
+	private int refreshTokenLifeTimeMs;
 }

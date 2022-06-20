@@ -2,7 +2,6 @@ package io.timpac.service.user;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class UserService implements UserDetailsService {
+public class UserService {
 	private final UserRepository userRepository;
 	private final AuthorityService authorityService;
 	private final PasswordEncoder passwordEncoder;
@@ -69,12 +68,6 @@ public class UserService implements UserDetailsService {
 	
 	public void deleteAll() {
 		userRepository.deleteAll();
-	}
-
-	@Override
-	public User loadUserByUsername(String username) throws UsernameNotFoundException {
-		return userRepository.findOneWithAuthoritiesByUsername(username)
-				.orElseThrow(() -> new UsernameNotFoundException(username + "을 찾을 수 없습니다."));
 	}
 	
 }

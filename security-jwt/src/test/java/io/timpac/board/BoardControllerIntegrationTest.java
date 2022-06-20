@@ -4,7 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.net.URI;
+import static io.timpac.domain.user.dto.UserDto.TokenType.*;
+
 import java.net.URISyntaxException;
 
 import org.junit.jupiter.api.AfterEach;
@@ -14,13 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,17 +30,13 @@ import io.timpac.domain.common.RestResponsePage;
 import io.timpac.domain.user.Authority;
 import io.timpac.domain.user.User;
 import io.timpac.domain.user.dto.UserDto;
-import io.timpac.jwt.JwtUtil;
 import io.timpac.service.board.BoardService;
-import io.timpac.service.user.UserService;
+import io.timpac.util.IntegrationTestHelper;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public class BoardControllerIntegrationTest {
+public class BoardControllerIntegrationTest extends IntegrationTestHelper {
 	@Autowired private BoardService boardService;
-	@Autowired private UserService userService;
-	@LocalServerPort private int port;
 	@Autowired private ObjectMapper objectMapper;
-    private RestTemplate restTemplate = new RestTemplate();
     
     private Board board;
     private UserDto user1;
@@ -61,9 +55,9 @@ public class BoardControllerIntegrationTest {
 	}
 
 	private void saveTwoUser() {
-		user1 = new UserDto("user1", "1111");
-		user2 = new UserDto("user2", "2222");
-		admin = new UserDto("admin", "3333");
+		user1 = new UserDto("user1", "1111", ACCESS);
+		user2 = new UserDto("user2", "2222", ACCESS);
+		admin = new UserDto("admin", "3333", ACCESS);
 
 		userService.signUp(user1);
 		userService.signUp(user2);
@@ -74,14 +68,14 @@ public class BoardControllerIntegrationTest {
 	@DisplayName("1.user1이 토큰을 가져온다")
 	@Test
 	void test1() throws URISyntaxException {
-		String token = getAccessToken(user1);
+		String token = getTokens(user1).getAccessToken();
 		assertNotNull(token);
 	}
 	
 	@DisplayName("2-1.게시글은 권한만 있으면 누구나 저장할 수 있다.")
 	@Test
 	void test2() throws URISyntaxException {
-		HttpEntity<Board> entity = new HttpEntity<Board>(makeBoard(), headerWithToken(getAccessToken(user1)));
+		HttpEntity<Board> entity = new HttpEntity<Board>(makeBoard(), headerWithToken(getTokens(user1).getAccessToken()));
 		ResponseEntity<Board> response = restTemplate.exchange(uri("/board/save"), HttpMethod.POST, entity, Board.class);
 		this.board = response.getBody();
 		
@@ -106,7 +100,9 @@ public class BoardControllerIntegrationTest {
 	void test4() throws URISyntaxException {
 		saveBoard();
 		
-		HttpEntity<Board> entity = new HttpEntity<Board>(Board.builder().boardId(this.board.getBoardId()).title("제목수정").content("내용수정").build(), headerWithToken(getAccessToken(user1)));
+		HttpEntity<Board> entity = new HttpEntity<Board>(
+				Board.builder().boardId(this.board.getBoardId()).title("제목수정").content("내용수정").build(),
+				headerWithToken(getTokens(user1).getAccessToken()));
 		ResponseEntity<Board> response = restTemplate.exchange(uri("/board/save"), HttpMethod.POST, entity, Board.class);
 		
 		assertEquals(200, response.getStatusCodeValue());
@@ -119,7 +115,9 @@ public class BoardControllerIntegrationTest {
 	void test5() throws URISyntaxException {
 		saveBoard();
 		
-		HttpEntity<Board> entity = new HttpEntity<Board>(Board.builder().boardId(this.board.getBoardId()).title("제목수정").content("내용수정").build(), headerWithToken(getAccessToken(user2)));
+		HttpEntity<Board> entity = new HttpEntity<Board>(
+				Board.builder().boardId(this.board.getBoardId()).title("제목수정").content("내용수정").build(),
+				headerWithToken(getTokens(user2).getAccessToken()));
 		
 		HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
 			restTemplate.exchange(uri("/board/save"), HttpMethod.POST, entity, Board.class);
@@ -132,7 +130,9 @@ public class BoardControllerIntegrationTest {
 	void test6() throws URISyntaxException {
 		saveBoard();
 		
-		HttpEntity<Board> entity = new HttpEntity<Board>(Board.builder().boardId(this.board.getBoardId()).title("제목수정").content("내용수정").build(), headerWithToken(getAccessToken(admin)));
+		HttpEntity<Board> entity = new HttpEntity<Board>(
+				Board.builder().boardId(this.board.getBoardId()).title("제목수정").content("내용수정").build(),
+				headerWithToken(getTokens(admin).getAccessToken()));
 		
 		ResponseEntity<Board> response = restTemplate.exchange(uri("/board/save"), HttpMethod.POST, entity, Board.class);
 		
@@ -146,7 +146,7 @@ public class BoardControllerIntegrationTest {
 	void test7() throws URISyntaxException {
 		saveBoard();
 		
-		HttpEntity<Board> entity = new HttpEntity<Board>(makeBoard(), headerWithToken(getAccessToken(user2)));
+		HttpEntity<Board> entity = new HttpEntity<Board>(makeBoard(), headerWithToken(getTokens(user2).getAccessToken()));
 		
 		HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
 			restTemplate.exchange(uri("/board/" + this.board.getBoardId()), HttpMethod.DELETE, entity, Board.class);
@@ -159,7 +159,7 @@ public class BoardControllerIntegrationTest {
 	void test8() throws URISyntaxException, JsonMappingException, JsonProcessingException {
 		saveBoard();
 		
-		HttpEntity<Board> entity = new HttpEntity<Board>(makeBoard(), headerWithToken(getAccessToken(user1)));
+		HttpEntity<Board> entity = new HttpEntity<Board>(makeBoard(), headerWithToken(getTokens(user1).getAccessToken()));
 		
 		ResponseEntity<Board> response = restTemplate.exchange(uri("/board/" + this.board.getBoardId()), HttpMethod.DELETE, entity, Board.class);
 		assertEquals(200, response.getStatusCodeValue());
@@ -171,28 +171,10 @@ public class BoardControllerIntegrationTest {
 	
 	
 	private void saveBoard() throws URISyntaxException {
-		HttpEntity<Board> entity = new HttpEntity<Board>(makeBoard(), headerWithToken(getAccessToken(user1)));
+		HttpEntity<Board> entity = new HttpEntity<Board>(makeBoard(), headerWithToken(getTokens(user1).getAccessToken()));
 		
 		ResponseEntity<Board> response = restTemplate.exchange(uri("/board/save"), HttpMethod.POST, entity, Board.class);
 		this.board = response.getBody();
-	}
-	
-	/**아이디 패스워드로 엑세스토큰을 얻는다*/
-	private String getAccessToken(UserDto user) throws URISyntaxException {
-		HttpEntity<UserDto> body = new HttpEntity<UserDto>(user);
-		ResponseEntity<String> response = restTemplate.exchange(uri("/login"), HttpMethod.POST, body, String.class);
-		
-		return response.getHeaders().get(JwtUtil.AUTHORIZATION_HEADER).get(0).substring(JwtUtil.AUTHORIZATION_PREFIX.length());
-	}
-	
-	private HttpHeaders headerWithToken(String token) {
-		HttpHeaders headers = new HttpHeaders();
-		headers.add(JwtUtil.AUTHORIZATION_HEADER, JwtUtil.AUTHORIZATION_PREFIX + token);
-		return headers;
-	}
-	
-	private URI uri(String path) throws URISyntaxException {
-		return new URI(String.format("http://localhost:%d%s", port, path));
 	}
 	
 	private Board makeBoard() {

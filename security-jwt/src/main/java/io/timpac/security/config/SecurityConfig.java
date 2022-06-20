@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.timpac.jwt.JwtAccessDeniedHandler;
 import io.timpac.jwt.JwtAuthenticationEntryPoint;
 import io.timpac.jwt.JwtUtil;
+import io.timpac.service.user.UserDetailsServiceImpl;
 
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -23,14 +24,17 @@ public class SecurityConfig {
 	private final JwtUtil jwtUtil;
 	private final JwtAuthenticationEntryPoint authenticationEntryPoint;
 	private final JwtAccessDeniedHandler accessDeniedHandler;
+	private final UserDetailsServiceImpl userDetailsService;
 	
 	public SecurityConfig(ObjectMapper objectMapper, JwtUtil jwtUtil,
 			JwtAuthenticationEntryPoint authenticationEntryPoint,
-			JwtAccessDeniedHandler accessDeniedHandler) {
+			JwtAccessDeniedHandler accessDeniedHandler,
+			UserDetailsServiceImpl userDetailsService) {
 		this.objectMapper = objectMapper;
 		this.jwtUtil = jwtUtil;
 		this.authenticationEntryPoint = authenticationEntryPoint;
 		this.accessDeniedHandler = accessDeniedHandler;
+		this.userDetailsService = userDetailsService;
 	}
 	
 	@Bean
@@ -50,7 +54,7 @@ public class SecurityConfig {
 			.authenticationEntryPoint(authenticationEntryPoint)
 			
 			.and()
-			.apply(new JwtAuthenticationDsl(objectMapper, jwtUtil));
+			.apply(new JwtAuthenticationDsl(objectMapper, jwtUtil, userDetailsService));
 		
 		return http.build();
 	}

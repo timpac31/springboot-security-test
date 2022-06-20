@@ -19,7 +19,7 @@ class Jwt1ApplicationTests {
 	@Test
 	void configurationPropertyMapping() {
 		System.out.println(jwtProperties.getSecretKey());
-		System.out.println(jwtProperties.getExpiredMilliSeconds());
+		System.out.println(jwtProperties.getRefreshTokenLifeTimeMs());
 	}
 
 	@Test
